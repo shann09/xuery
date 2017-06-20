@@ -79,6 +79,7 @@ public class JdbcTest {
         jdbc.update(
                 new QueryBuilder()
                         .push("update sys_user set")
+                        //虽然实例a是个Model，含有表中不存在的companyId和companyName，但通过传入User.class可以滤除多余字段
                         .push(new QueryFieldProp(a,User.class))
                         .push("where")
                         .push(new QueryField("id","=",a.getId()))
