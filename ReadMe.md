@@ -4,7 +4,9 @@
 
 2. 自动将查询出的蛇形命名转成pojo中的小驼峰命名
 
-```
+3. Query类toString方法可以打印出易读的sql
+
+```java
   public class JdbcTest {
   
       private JDBC jdbc = null;
