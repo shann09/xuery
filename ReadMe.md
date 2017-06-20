@@ -4,7 +4,7 @@
 
 2. 自动将查询出的蛇形命名转成pojo中的小驼峰命名
 
-
+```
   public class JdbcTest {
   
       private JDBC jdbc = null;
@@ -326,3 +326,4 @@
   
       }
   }
+```
