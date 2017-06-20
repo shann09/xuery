@@ -1,10 +1,14 @@
-### 一个精简的java sql dsl，只要会sql，再看test中的示例，就能够灵活的增删改查
+### 一个精简的java sql dsl，只要会sql，再看一遍test中的示例，就能够灵活的增删改查
 
 1. 不用注解，实体类是干干净净的pojo
 
 2. 自动将查询出的蛇形命名转成pojo中的小驼峰命名
 
-3. Query类toString方法可以打印出易读的sql
+3. Query类的toString方法可以打印出易读的sql
+
+4. 我们只是想关联2张表查出几行数据，何苦去学晦涩的hql
+
+5. 反射可以让驼峰命名和蛇形命名自动转化，mybatis却用注解和resultMap手动转化，这又是何苦
 
 ```java
   public class JdbcTest {
