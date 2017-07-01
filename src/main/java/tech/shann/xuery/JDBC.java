@@ -18,6 +18,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+
 /**
  * Created by shann on 17/6/15.
  */
@@ -242,12 +243,12 @@ public class JDBC {
      * @param id_column 返回值的字段名，蛇形命名
      * @return 返回插入的记录idColumn字段的值
      */
-    public <T> T insertGenID(String table_name, T mapOrPojo, String id_column) {
+    public <T> T insertGenID(String table_name, T mapOrPojo,Class<T> beanClazz, String id_column) {
         if (null == id_column || "".equals(id_column)){
             id_column = "id";
         }
 
-        Iterator it = new PropIterator(mapOrPojo).iterator();
+        Iterator it = new PropIterator(mapOrPojo,beanClazz).iterator();
         Class c = null;
         Field f = null;
         while(c==null && it.hasNext()){

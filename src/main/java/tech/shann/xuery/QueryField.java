@@ -1,5 +1,7 @@
 package tech.shann.xuery;
 
+import java.util.Date;
+
 /**
  * 可用于select，update，等查询语句，QueryBuilder利用它生成条件语句，类似 user_name =:userName
  * 
@@ -43,8 +45,13 @@ public class QueryField {
 			this.prefix = "";
 			this.columnName = fieldName;
 		}
-		
-		this.fieldValue = fieldValue;
+
+		if(fieldValue instanceof Date){
+			this.fieldValue = new java.sql.Date(((Date)fieldValue).getTime());
+		}else{
+			this.fieldValue = fieldValue;
+		}
+
 		this.symbol = symbol;
 		this.symbolType = SymbolType.getEnum(symbol);
 	}

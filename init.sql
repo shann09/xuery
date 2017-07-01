@@ -22,6 +22,6 @@ CREATE TABLE user_company (
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户公司关联表';
 
-INSERT INTO sys_user (id,user_name,mobile,create_time) VALUES (1,'刘备','111222333',NULL);
+INSERT INTO sys_user (id,user_name,mobile,create_time) VALUES (1,'刘备','111222333','2016-06-12');
 INSERT INTO company (id,company_name) VALUES (1,'真三国公司');
 INSERT INTO user_company (id,user_id,company_id) VALUES (1,1,1);
