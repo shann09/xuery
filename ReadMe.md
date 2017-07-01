@@ -1,12 +1,6 @@
 ### 一个干净直接的sql构造工具，以及一个基于jdbcTemplate的增删改查工具
 
-#### 我们只是想关联2张表查出几行数据，何苦去学晦涩的hql
-
-#### 反射可以让驼峰命名和蛇形命名自动转化，mybatis却用注解和resultMap手动转化，这又是何苦
-
-#### 只要会写天然原生的sql，再看一遍JdbcTest中的示例，就能够灵活快速的执行增删改查
-
-1. 实体类是干干净净的pojo，无需注解，反对注解
+1. 实体类是干干净净的pojo，无注解，无extends其他框架类，方便在SQL和NoSQL之间重用实体类
 
 2. 自动将查询出的蛇形命名字段转成pojo中的小驼峰命名属性
 
@@ -19,6 +13,21 @@
 ```java
   //先搭建好数据库，并执行init.sql
 
+  import com.alibaba.druid.pool.DruidDataSource;
+  import org.junit.Test;
+  import tech.shann.entity.User;
+  import tech.shann.entity.model.UserModel;
+  import tech.shann.xuery.*;
+  
+  import java.text.ParseException;
+  import java.text.SimpleDateFormat;
+  import java.util.*;
+  import java.util.function.BiFunction;
+  import java.util.function.BinaryOperator;
+  
+  /**
+   * Created by shann on 17/6/15.
+   */
   public class JdbcTest {
   
       private JDBC jdbc = null;
@@ -129,7 +138,7 @@
           u1.setUserName("黄忠");
           u1.setMobile("88");
           u1.setCreateTime(new Date());
-          jdbc.insertGenID("sys_user",u1,"id");
+          jdbc.insertGenID("sys_user",u1,User.class,"id");
   
       }
   
@@ -144,8 +153,8 @@
           u2.setMobile("66");
   
           try {
-              jdbc.insertGenID("sys_user",u1,"id");
-              jdbc.insertGenID("sys_user",u2,"id");
+              jdbc.insertGenID("sys_user",u1,User.class,"id");
+              jdbc.insertGenID("sys_user",u2,User.class,"id");
   
               System.out.println("yes");
           }catch (Exception e){
@@ -199,14 +208,54 @@
           jdbc.batchInsert("sys_user",l);
   
       }
+      @Test
+      public void testBatchInsert2(){
+          UserModel u1 = new UserModel();
+          u1.setUserName("f");
+          u1.setMobile("11");
+          u1.setCompanyId(1l);
+  
+          UserModel u2 = new UserModel();
+          u2.setUserName("h");
+          u2.setMobile("22");
+          u2.setCompanyId(1l);
+  
+          UserModel u3 = new UserModel();
+          u3.setUserName("i");
+          u3.setMobile("33");
+          u3.setCompanyId(1l);
+  
+          List<UserModel> l = new ArrayList<UserModel>(){{
+              add(u1);
+              add(u2);
+              add(u3);
+          }};
+  
+          //mobile是有唯一性索引字段
+          //如果数据库中22存在，11不存在，33不存在
+          // 那么抛出异常，但是11和33还是会插入到数据库中！
+  
+          jdbc.batchInsert("sys_user",l);
+  
+      }
   
       @Test
       public void testInsertGenID(){
           User u = new User();
           u.setUserName("e");
-          u.setMobile("44");
+          u.setMobile("99");
   
-          jdbc.insertGenID("sys_user",u,null);
+          jdbc.insertGenID("sys_user",u,User.class,null);
+          System.out.println(u.getId());
+      }
+      @Test
+      public void testInsertGenID2(){
+          UserModel u = new UserModel();
+          u.setUserName("e");
+          u.setMobile("88");
+          u.setCompanyId(5l);
+  
+          jdbc.insertGenID("sys_user",u,User.class,null);
           System.out.println(u.getId());
       }
       @Test
@@ -215,6 +264,17 @@
           u.setId(3l);
           u.setUserName("d");
           u.setMobile("33");
+  
+          jdbc.insert("sys_user",u);
+          System.out.println(u.getId());
+      }
+      @Test
+      public void testInsert2(){
+          UserModel u = new UserModel();
+          u.setId(4l);
+          u.setUserName("d");
+          u.setMobile("44");
+          u.setCompanyId(1l);
   
           jdbc.insert("sys_user",u);
           System.out.println(u.getId());
@@ -340,5 +400,182 @@
           //如果更新字段违反了唯一性约束，那么任何一行都不会被更新
   
       }
+  
+      @Test
+      public void testInAndNotIn(){
+          Query q = new QueryBuilder()
+                  .push("select * from sys_user")
+                  .push("where")
+                  .push(new QueryField("id", "ni", new ArrayList<Long>(){{
+                      add(11l);
+                      add(22l);
+                  }}))
+                  .push("and")
+                  .push(new QueryField("user_name", "in", new ArrayList<String>() {{
+                      add("周瑜");
+                      add("诸葛亮");
+                      add("刘备");
+                  }}))
+                  .build();
+          System.out.println(q.toString());
+          List<User> users = jdbc.queryForBeanList(
+                  q,
+                  User.class
+          );
+          System.out.println(users.size());
+      }
+  
+      @Test
+      public void testIsBlank(){
+          Query q = new QueryBuilder()
+                  .push("select * from sys_user u")
+                  .push("where")
+                  .push(new QueryField("create_time", "ib",null))
+                  .build();
+          System.out.println(q.toString());
+          //select * from sys_user u  where  ( create_time is null or create_time = '' )
+          List<User> users = jdbc.queryForBeanList(
+                  q,
+                  User.class
+          );
+          System.out.println(users.size());
+      }
+  
+      @Test
+      public void testNotBlank(){
+          Query q = new QueryBuilder()
+                  .push("select * from sys_user u")
+                  .push("where")
+                  .push(new QueryField("mobile", "nb",null))
+                  .build();
+          System.out.println(q.toString());
+          //select * from sys_user u  where  ( mobile is not null and mobile <> '' )
+          List<User> users = jdbc.queryForBeanList(
+                  q,
+                  User.class
+          );
+          System.out.println(users.size());
+      }
+  
+      @Test
+      public void testLargeThen(){
+          Query q = new QueryBuilder()
+                  .push("select * from sys_user u")
+                  .push("where")
+                  .push(new QueryField("create_time", ">",new Date()))
+                  .push("or")
+                  .push(new QueryField("id",">=",1))
+                  .build();
+          System.out.println(q.toString());
+          //select * from sys_user u  where  create_time > '2017-07-01'  or  id >= '1'
+          List<User> users = jdbc.queryForBeanList(
+                  q,
+                  User.class
+          );
+          System.out.println(users.size());
+      }
+  
+      @Test
+      public void testNotEqual() throws ParseException {
+          Query q = new QueryBuilder()
+                  .push("select * from sys_user u")
+                  .push("where")
+                  .push(new QueryField("create_time", "<>",new SimpleDateFormat("yyyy-MM-dd").parse("2017-09-11")))
+                  .push("and")
+                  .push(new QueryField("mobile","!=","11"))
+                  .build();
+          System.out.println(q.toString());
+          //select * from sys_user u  where  create_time <> '2017-09-11'  and  mobile != '11'
+          List<User> users = jdbc.queryForBeanList(
+                  q,
+                  User.class
+          );
+          System.out.println(users.size());
+      }
+  
+      @Test
+      public void testLike(){
+          Query q = new QueryBuilder()
+                  .push("select * from sys_user u")
+                  .push("where")
+                  .push(new QueryField("mobile","like","111%"))
+                  .build();
+          System.out.println(q.toString());
+          //select * from sys_user u  where  mobile like '111%'
+          List<User> users = jdbc.queryForBeanList(
+                  q,
+                  User.class
+          );
+          System.out.println(users.size());
+      }
+  
+      @Test
+      public void testLimit(){
+          Query q = new QueryBuilder()
+                  .push("select * from sys_user u")
+                  .push("where")
+                  .push(new QueryField("id","nb",null))
+                  .push("limit "+1+","+2)
+                  .build();
+          System.out.println(q.toString());
+          //select * from sys_user u  where  ( id is not null and id <> '' )  limit 1,2
+          List<User> users = jdbc.queryForBeanList(
+                  q,
+                  User.class
+          );
+          System.out.println(users.size());
+      }
+  
+      @Test
+      public void testGroupBy(){
+          Query q = new QueryBuilder()
+                  .push("select * from sys_user u")
+                  .push("where")
+                  .push(new QueryField("id","nb",null))
+                  .push("group by id ")
+                  .build();
+          System.out.println(q.toString());
+          //select * from sys_user u  where  ( id is not null and id <> '' )  group by id
+          List<User> users = jdbc.queryForBeanList(
+                  q,
+                  User.class
+          );
+          System.out.println(users.size());
+      }
+  
+      @Test
+      public void testPager(){
+          //mysql default
+          Query q = new QueryBuilder()
+                  .push("select * from sys_user u")
+                  .setPager(new QueryPager(1,2))
+                  .build();
+          System.out.println(q.toString());
+          //select * from sys_user u  limit 2 , 2
+          List<User> users = jdbc.queryForBeanList(
+                  q,
+                  User.class
+          );
+          System.out.println(users.size());
+  
+  
+          //oracle
+          q = new QueryBuilder()
+                  .push("select * from sys_user u")
+                  .setPager(new QueryPager(1,2))
+                  .setDbType("oracle")
+                  .build();
+          System.out.println(q.toString());
+          //select * from (  select * ,rownum rn from sys_user u  where rownum< 5  ) where rn>= 3
+  //        users = jdbc.queryForBeanList(
+  //                q,
+  //                User.class
+  //        );
+  //        System.out.println(users.size());
+      }
+  
+  
+  
   }
+
 ```
