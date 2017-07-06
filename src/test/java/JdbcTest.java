@@ -43,6 +43,23 @@ public class JdbcTest {
     }
 
     @Test
+    public void testComplex(){
+        Query q = new QueryBuilder()
+                .push("select * from sys_user u where")
+                .push(new QueryField("(u.money-15)*10",">",10))
+                .push("and")
+                .push(new QueryField("u.money/2",">",10))
+                .build();
+        System.out.println(q.getSqlStr());
+        System.out.println(q.toString());
+        List<User> l = jdbc.queryForBeanList(q,User.class);
+
+        for(User u:l){
+            System.out.println(u.getUserName());
+        }
+    }
+
+    @Test
     public void testJoin(){
         Query q = new QueryBuilder()
                 .push("select " +
@@ -57,6 +74,8 @@ public class JdbcTest {
                 .push("left join company c")
                 .push("on(uc.company_id = c.id)")
                 .push("where")
+                .push(new QueryField("u.mobile","=","111222333"))
+                .push("and")
                 .push(new QueryField("u.mobile","=","111222333"))
                 .push("order by u.user_name")
                 .build();
@@ -342,6 +361,7 @@ public class JdbcTest {
                 }}))
                 .build();
         System.out.println(q.toString());
+        //select * from sys_user  where  id = '1'  and  user_name  in ( '周瑜'  , '诸葛亮'  , '刘备'  )
         List<User> l = jdbc.queryForBeanList(q,User.class);
         System.out.println(l.size());
 
@@ -465,7 +485,8 @@ public class JdbcTest {
         Query q = new QueryBuilder()
                 .push("select * from sys_user u")
                 .push("where")
-                .push(new QueryField("create_time", "<>",new SimpleDateFormat("yyyy-MM-dd").parse("2017-09-11")))
+//                .push(new QueryField("create_time", "<>","2017-09-11"))
+                .push(new QueryField("create_time", "<>",new SimpleDateFormat("yyyy-MM-dd").parse("2017-06-12")))
                 .push("and")
                 .push(new QueryField("mobile","!=","11"))
                 .build();
@@ -483,8 +504,10 @@ public class JdbcTest {
         Query q = new QueryBuilder()
                 .push("select * from sys_user u")
                 .push("where")
-                .push(new QueryField("mobile","like","111%"))
+                .push("mobile like '111%'")
+//                .push(new QueryField("mobile","like","111%"))
                 .build();
+        System.out.println(q.getSqlStr());
         System.out.println(q.toString());
         //select * from sys_user u  where  mobile like '111%'
         List<User> users = jdbc.queryForBeanList(
@@ -525,7 +548,11 @@ public class JdbcTest {
                 q,
                 User.class
         );
-        System.out.println(users.size());
+        users = jdbc.queryForBeanList(new QueryBuilder()
+                .push("select * from user")
+                .build(),
+                User.class);
+                System.out.println(users.size());
     }
 
     @Test
@@ -557,6 +584,20 @@ public class JdbcTest {
 //                User.class
 //        );
 //        System.out.println(users.size());
+    }
+
+    @Test
+    public void testPushIf(){
+        Query q = new QueryBuilder()
+                .push("select * from sys_user u")
+                .build();
+        System.out.println(q.toString());
+        //select * from sys_user u  limit 2 , 2
+        List<User> users = jdbc.queryForBeanList(
+                q,
+                User.class
+        );
+        System.out.println(users.size());
     }
 
 

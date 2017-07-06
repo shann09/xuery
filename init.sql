@@ -4,6 +4,7 @@ CREATE TABLE sys_user (
   user_name varchar(20) DEFAULT NULL COMMENT '姓名',
   mobile varchar(20) UNIQUE DEFAULT NULL COMMENT '电话',
   create_time datetime DEFAULT NULL COMMENT '创建时间',
+  money float(10,2) DEFAULT NULL COMMENT '钱包',
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户';
 
@@ -22,6 +23,6 @@ CREATE TABLE user_company (
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户公司关联表';
 
-INSERT INTO sys_user (id,user_name,mobile,create_time) VALUES (1,'刘备','111222333','2016-06-12');
+INSERT INTO sys_user (id,user_name,mobile,create_time,money) VALUES (1,'刘备','111222333','2016-06-12',100);
 INSERT INTO company (id,company_name) VALUES (1,'真三国公司');
 INSERT INTO user_company (id,user_id,company_id) VALUES (1,1,1);

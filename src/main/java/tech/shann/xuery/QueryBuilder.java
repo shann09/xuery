@@ -219,7 +219,6 @@ public class QueryBuilder {
             //下划线转驼峰命名，作为key，适配pojo参数
             String columnName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL,
                     queryField.getColumnName());
-            String prefix = queryField.getPrefix();
 
             Integer count = null;
             Iterator it = null;

@@ -11,8 +11,7 @@ import java.util.Date;
 public class QueryField {
 
 	private String fieldName;//t.name
-	private String prefix;//t.
-	private String columnName;//name
+	private String columnName;
 	private String symbol;
 	private Object fieldValue;
 	private SymbolType symbolType = SymbolType.DEFAULT;
@@ -34,17 +33,7 @@ public class QueryField {
 		}
 		
 		this.fieldName = fieldName;
-		if(fieldName.indexOf(".")>0){
-			String[] splitedFieldName = fieldName.split("\\.");
-			if(splitedFieldName.length>2){
-				throw new RuntimeException("fieldName格式错误");
-			}
-			this.prefix = splitedFieldName[0];
-			this.columnName = splitedFieldName[1];
-		}else{
-			this.prefix = "";
-			this.columnName = fieldName;
-		}
+		this.columnName = fieldName.replaceAll("[\\*\\/\\-\\+\\(\\)\\.]","");
 
 		if(fieldValue instanceof Date){
 			this.fieldValue = new java.sql.Date(((Date)fieldValue).getTime());
@@ -113,13 +102,6 @@ public class QueryField {
 		return symbolType;
 	}
 
-	public String getPrefix() {
-		return prefix;
-	}
-
-	public void setPrefix(String prefix) {
-		this.prefix = prefix;
-	}
 
 	public String getColumnName() {
 		return columnName;
