@@ -46,9 +46,9 @@ public class JdbcTest {
     public void testComplex(){
         Query q = new QueryBuilder()
                 .push("select * from sys_user u where")
-                .push(new QueryField("(u.money-15)*10",">",10))
+                .push(new QueryField("(money-15)*10",">",10))
                 .push("and")
-                .push(new QueryField("u.money/2",">",10))
+                .push(new QueryField("money/2",">",10))
                 .build();
         System.out.println(q.getSqlStr());
         System.out.println(q.toString());
